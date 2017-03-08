@@ -346,11 +346,11 @@ Proof.
 intros. destruct x, y; try (apply B2R_inj; now eauto).
 - simpl in H2. congruence.
 - symmetry in H1. apply Rmult_integral in H1.
-  destruct H1. apply eq_Z2R with (n:=0%Z) in H1. destruct b0; discriminate H1.
+  destruct H1. apply (eq_Z2R _ 0) in H1. destruct b0; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 - apply Rmult_integral in H1.
-  destruct H1. apply eq_Z2R with (n:=0%Z) in H1. destruct b; discriminate H1.
+  destruct H1. apply (eq_Z2R _ 0) in H1. destruct b; discriminate H1.
   simpl in H1. pose proof (bpow_gt_0 radix2 e).
   rewrite H1 in H3. apply Rlt_irrefl in H3. destruct H3.
 Qed.
@@ -1873,121 +1873,6 @@ omega.
 (* . mz < 0 *)
 elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
 apply Rle_trans with R0.
-apply F2R_le_0_compat.
-now case mz.
-apply sqrt_ge_0.
-(* *)
-unfold Fsqrt_core, Fsqrt_core_binary.
-rewrite Zdigits2_Zdigits.
-destruct (if Zeven _ then _ else _) as [[|s'|s'] e''] ; try easy.
-now rewrite Z.shiftl_mul_pow2.
-Qed.
-
-Lemma Bsqrt_correct_aux :
-  forall m mx ex (Hx : bounded mx ex = true),
-  let x := F2R (Float radix2 (Zpos mx) ex) in
-  let z :=
-    let '(mz, ez, lz) := Fsqrt_core_binary (Zpos mx) ex in
-    match mz with
-    | Zpos mz => binary_round_aux m false mz ez lz
-    | _ => F754_nan false xH (* dummy *)
-    end in
-  valid_binary z = true /\
-  FF2R radix2 z = round radix2 fexp (round_mode m) (sqrt x) /\
-  is_finite_FF z = true /\ sign_FF z = false.
-Proof with auto with typeclass_instances.
-intros m mx ex Hx.
-replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
-simpl.
-refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
-destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
-intros (Pz, Bz).
-destruct mz as [|mz|mz].
-(* . mz = 0 *)
-elim (Zlt_irrefl prec).
-now apply Zle_lt_trans with Z0.
-(* . mz > 0 *)
-refine (_ (binary_round_aux_correct m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
-rewrite Rlt_bool_false. 2: apply sqrt_ge_0.
-rewrite Rlt_bool_true.
-easy.
-(* .. *)
-rewrite Rabs_pos_eq.
-refine (_ (relative_error_FLT_ex radix2 emin prec (prec_gt_0 prec) (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
-fold fexp.
-intros (eps, (Heps, Hr)).
-rewrite Hr.
-assert (Heps': (Rabs eps < 1)%R).
-apply Rlt_le_trans with (1 := Heps).
-fold (bpow radix2 0).
-generalize (prec_gt_0 prec).
-clear ; omega.
-apply Rsqr_incrst_0.
-3: apply bpow_ge_0.
-rewrite Rsqr_mult.
-rewrite Rsqr_sqrt.
-2: now apply F2R_ge_0_compat.
-unfold Rsqr.
-apply Rmult_ge_0_gt_0_lt_compat.
-apply Rle_ge.
-apply Rle_0_sqr.
-apply bpow_gt_0.
-now apply bounded_lt_emax.
-apply Rlt_le_trans with 4%R.
-apply Rsqr_incrst_1.
-apply Rplus_lt_compat_l.
-apply (Rabs_lt_inv _ _ Heps').
-rewrite <- (Rplus_opp_r 1).
-apply Rplus_le_compat_l.
-apply Rlt_le.
-apply (Rabs_lt_inv _ _ Heps').
-now apply (Z2R_le 0 2).
-change 4%R with (bpow radix2 2).
-apply bpow_le.
-generalize (prec_gt_0 prec).
-clear -Hmax ; omega.
-apply Rmult_le_pos.
-apply sqrt_ge_0.
-rewrite <- (Rplus_opp_r 1).
-apply Rplus_le_compat_l.
-apply Rlt_le.
-apply (Rabs_lt_inv _ _ Heps').
-rewrite Rabs_pos_eq.
-2: apply sqrt_ge_0.
-apply Rsqr_incr_0.
-2: apply bpow_ge_0.
-2: apply sqrt_ge_0.
-rewrite Rsqr_sqrt.
-2: now apply F2R_ge_0_compat.
-apply Rle_trans with (bpow radix2 emin).
-unfold Rsqr.
-rewrite <- bpow_plus.
-apply bpow_le.
-unfold emin.
-clear -Hmax ; omega.
-apply generic_format_ge_bpow with fexp.
-intros.
-apply Zle_max_r.
-now apply F2R_gt_0_compat.
-apply generic_format_canonic.
-apply (canonic_canonic_mantissa false).
-apply (andb_prop _ _ Hx).
-(* .. *)
-apply round_ge_generic...
-apply generic_format_0.
-apply sqrt_ge_0.
-rewrite Rabs_pos_eq.
-exact Bz.
-apply sqrt_ge_0.
-revert Pz.
-generalize (Zdigits radix2 (Zpos mz)).
-unfold fexp, FLT_exp.
-clear.
-intros ; zify ; subst.
-omega.
-(* . mz < 0 *)
-elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
-apply Rle_trans with 0%R.
 apply F2R_le_0_compat.
 now case mz.
 apply sqrt_ge_0.

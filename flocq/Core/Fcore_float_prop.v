@@ -145,7 +145,7 @@ Qed.
 
 Theorem F2R_eq_0_reg :
   forall m e : Z,
-  F2R (Float beta m e) = R0 ->
+  F2R (Float beta m e) = 0%R ->
   m = Z0.
 Proof.
 intros m e H.
