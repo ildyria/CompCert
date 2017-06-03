@@ -139,7 +139,8 @@ let next_var_list vars start = List.fold_left next_var start vars
 let norm_function f =
   gen_next := next_var_list f.fn_params
                 (next_var_list f.fn_vars
-                   (next_var_list f.fn_temps P.one));
+                   (next_var_list f.fn_temps
+                     (Camlcoq.first_unused_ident ())));
   gen_trail := [];
   let s' = norm_stmt f.fn_body in
   let new_temps = !gen_trail in
