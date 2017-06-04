@@ -50,6 +50,9 @@ let accesses_memory e =
   is_lvalue e &&
   match access_mode (typeof e) with By_value _ -> true | _ -> false
 
+(** Normalization of an expression.  Return a normalized expression
+  and a list of statements to be executed before evaluating the expression. *)
+
 let rec norm_expr e =
   let (sl, e') = norm_expr_1 e in
   if accesses_memory e then begin
@@ -66,7 +69,7 @@ and norm_expr_1 e =
   | Ederef(e1, t) ->
       let (sl, e1') = norm_expr e1 in (sl, Ederef(e1', t))
   | Eaddrof(e1, t) ->
-      let (sl, e1') = norm_expr e1 in (sl, Eaddrof(e1', t))
+      let (sl, e1') = norm_expr_lvalue e1 in (sl, Eaddrof(e1', t))
   | Eunop(op, e1, t) ->
       let (sl, e1') = norm_expr e1 in (sl, Eunop(op, e1', t))
   | Ebinop(op, e1, e2, t) ->
@@ -78,6 +81,14 @@ and norm_expr_1 e =
   | Efield(e1, id, t) ->
       let (sl, e1') = norm_expr e1 in (sl, Efield(e1', id, t))
   | Esizeof _ | Ealignof _ -> ([], e)
+
+(** An expression in l-value position has no memory dereference at top level,
+  by definition of l-values.  Hence, use the [norm_expr_1] variant.. *)
+and norm_expr_lvalue e = norm_expr_1 e
+
+(** In a [Sset id e] statement, the [e] expression can contain a memory
+  dereference at top level.  Hence, use the [norm_expr_1] variant. *)
+let norm_expr_set_top = norm_expr_1
 
 let rec norm_expr_list el =
   match el with
@@ -96,11 +107,11 @@ let rec norm_stmt s =
   match s with
   | Sskip -> s
   | Sassign(e1, e2) ->
-      let (sl1, e1') = norm_expr e1 in
+      let (sl1, e1') = norm_expr_lvalue e1 in
       let (sl2, e2') = norm_expr e2 in
       add_sequence (sl1 @ sl2) (Sassign(e1', e2'))
   | Sset(id, e) ->
-      let (sl, e') = norm_expr_1 e in
+      let (sl, e') = norm_expr_set_top e in
       add_sequence sl (Sset(id, e'))
   | Scall(optid, e, el) ->
       let (sl1, e') = norm_expr e in
