@@ -12,6 +12,7 @@
 
 (** Translation from Mach to IA32 Asm. *)
 
+Set Warnings "-notation-overridden,-parsing".
 Require Import Coqlib Errors.
 Require Import Integers Floats AST Memdata.
 Require Import Op Locations Mach Asm.

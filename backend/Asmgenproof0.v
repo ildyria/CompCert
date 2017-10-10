@@ -12,6 +12,7 @@
 
 (** Correctness proof for Asm generation: machine-independent framework *)
 
+Set Warnings "-notation-overridden,-parsing".
 Require Import Coqlib.
 Require Intv.
 Require Import AST.
