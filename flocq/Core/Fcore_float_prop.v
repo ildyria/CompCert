@@ -136,7 +136,7 @@ Qed.
 (** Sign facts *)
 Theorem F2R_0 :
   forall e : Z,
-  F2R (Float beta 0 e) = R0.
+  F2R (Float beta 0 e) = 0%R.
 Proof.
 intros e.
 unfold F2R. simpl.

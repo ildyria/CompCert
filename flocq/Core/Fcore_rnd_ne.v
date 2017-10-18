@@ -119,7 +119,7 @@ destruct (Zle_or_lt ex (fexp ex)) as [Hxe|Hxe].
 (* small x *)
 assert (Hd3 : Fnum xd = Z0).
 apply F2R_eq_0_reg with beta (Fexp xd).
-change (F2R xd = R0).
+change (F2R xd = 0%R).
 rewrite Hxd.
 apply round_DN_small_pos with (1 := Hex) (2 := Hxe).
 assert (Hu3 : xu = Float beta (1 * Zpower beta (fexp ex - fexp (fexp ex + 1))) (fexp (fexp ex + 1))).
@@ -370,7 +370,7 @@ destruct (Rle_or_lt (round beta fexp Zfloor x) 0) as [Hr|Hr].
 rewrite (Rle_antisym _ _ Hr).
 unfold scaled_mantissa.
 rewrite Rmult_0_l.
-change R0 with (Z2R 0).
+change 0%R with (Z2R 0).
 now rewrite (Ztrunc_Z2R 0).
 rewrite <- (round_0 beta fexp Zfloor).
 apply round_le...

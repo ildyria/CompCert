@@ -39,7 +39,7 @@ Inductive full_float :=
 Definition FF2R beta x :=
   match x with
   | F754_finite s m e => F2R (Float beta (cond_Zopp s (Zpos m)) e)
-  | _ => R0
+  | _ => 0%R
   end.
 
 End AnyRadix.
@@ -104,7 +104,7 @@ Definition B2FF x :=
 Definition B2R f :=
   match f with
   | B754_finite s m e _ => F2R (Float radix2 (cond_Zopp s (Zpos m)) e)
-  | _ => R0
+  | _ => 0%R
   end.
 
 Theorem FF2R_B2FF :
@@ -260,11 +260,11 @@ revert Heq. clear.
 case sx ; case sy ; try easy ;
   intros Heq ; apply False_ind ; revert Heq.
 apply Rlt_not_eq.
-apply Rlt_trans with R0.
+apply Rlt_trans with 0%R.
 now apply F2R_lt_0_compat.
 now apply F2R_gt_0_compat.
 apply Rgt_not_eq.
-apply Rgt_trans with R0.
+apply Rgt_trans with 0%R.
 now apply F2R_gt_0_compat.
 now apply F2R_lt_0_compat.
 assert (mx = my /\ ex = ey).
@@ -1034,7 +1034,7 @@ discriminate.
 unfold canonic.
 now rewrite <- H3.
 elim Rgt_not_eq with (2 := H3).
-apply Rlt_trans with R0.
+apply Rlt_trans with 0%R.
 now apply F2R_lt_0_compat.
 now apply F2R_gt_0_compat.
 rewrite <- Hr.
@@ -1042,7 +1042,7 @@ apply generic_format_abs...
 apply generic_format_round...
 (* . not m1' < 0 *)
 elim Rgt_not_eq with (2 := Hr).
-apply Rlt_le_trans with R0.
+apply Rlt_le_trans with 0%R.
 now apply F2R_lt_0_compat.
 apply Rabs_pos.
 (* *)
@@ -1643,7 +1643,7 @@ intros ; zify ; subst.
 omega.
 (* . mz < 0 *)
 elim Rlt_not_le with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
-apply Rle_trans with R0.
+apply Rle_trans with 0%R.
 apply F2R_le_0_compat.
 now case mz.
 apply Rmult_le_pos.
@@ -1720,7 +1720,7 @@ Definition Bdiv div_nan m x y :=
 
 Theorem Bdiv_correct :
   forall div_nan m x y,
-  B2R y <> R0 ->
+  B2R y <> 0%R ->
   if Rlt_bool (Rabs (round radix2 fexp (round_mode m) (B2R x / B2R y))) (bpow radix2 emax) then
     B2R (Bdiv div_nan m x y) = round radix2 fexp (round_mode m) (B2R x / B2R y) /\
     is_finite (Bdiv div_nan m x y) = is_finite x /\
@@ -1873,6 +1873,121 @@ omega.
 (* . mz < 0 *)
 elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
 apply Rle_trans with R0.
+apply F2R_le_0_compat.
+now case mz.
+apply sqrt_ge_0.
+(* *)
+unfold Fsqrt_core, Fsqrt_core_binary.
+rewrite Zdigits2_Zdigits.
+destruct (if Zeven _ then _ else _) as [[|s'|s'] e''] ; try easy.
+now rewrite Z.shiftl_mul_pow2.
+Qed.
+
+Lemma Bsqrt_correct_aux :
+  forall m mx ex (Hx : bounded mx ex = true),
+  let x := F2R (Float radix2 (Zpos mx) ex) in
+  let z :=
+    let '(mz, ez, lz) := Fsqrt_core_binary (Zpos mx) ex in
+    match mz with
+    | Zpos mz => binary_round_aux m false mz ez lz
+    | _ => F754_nan false xH (* dummy *)
+    end in
+  valid_binary z = true /\
+  FF2R radix2 z = round radix2 fexp (round_mode m) (sqrt x) /\
+  is_finite_FF z = true /\ sign_FF z = false.
+Proof with auto with typeclass_instances.
+intros m mx ex Hx.
+replace (Fsqrt_core_binary (Zpos mx) ex) with (Fsqrt_core radix2 prec (Zpos mx) ex).
+simpl.
+refine (_ (Fsqrt_core_correct radix2 prec (Zpos mx) ex _)) ; try easy.
+destruct (Fsqrt_core radix2 prec (Zpos mx) ex) as ((mz, ez), lz).
+intros (Pz, Bz).
+destruct mz as [|mz|mz].
+(* . mz = 0 *)
+elim (Zlt_irrefl prec).
+now apply Zle_lt_trans with Z0.
+(* . mz > 0 *)
+refine (_ (binary_round_aux_correct m (sqrt (F2R (Float radix2 (Zpos mx) ex))) mz ez lz _ _)).
+rewrite Rlt_bool_false. 2: apply sqrt_ge_0.
+rewrite Rlt_bool_true.
+easy.
+(* .. *)
+rewrite Rabs_pos_eq.
+refine (_ (relative_error_FLT_ex radix2 emin prec (prec_gt_0 prec) (round_mode m) (sqrt (F2R (Float radix2 (Zpos mx) ex))) _)).
+fold fexp.
+intros (eps, (Heps, Hr)).
+rewrite Hr.
+assert (Heps': (Rabs eps < 1)%R).
+apply Rlt_le_trans with (1 := Heps).
+fold (bpow radix2 0).
+generalize (prec_gt_0 prec).
+clear ; omega.
+apply Rsqr_incrst_0.
+3: apply bpow_ge_0.
+rewrite Rsqr_mult.
+rewrite Rsqr_sqrt.
+2: now apply F2R_ge_0_compat.
+unfold Rsqr.
+apply Rmult_ge_0_gt_0_lt_compat.
+apply Rle_ge.
+apply Rle_0_sqr.
+apply bpow_gt_0.
+now apply bounded_lt_emax.
+apply Rlt_le_trans with 4%R.
+apply Rsqr_incrst_1.
+apply Rplus_lt_compat_l.
+apply (Rabs_lt_inv _ _ Heps').
+rewrite <- (Rplus_opp_r 1).
+apply Rplus_le_compat_l.
+apply Rlt_le.
+apply (Rabs_lt_inv _ _ Heps').
+now apply (Z2R_le 0 2).
+change 4%R with (bpow radix2 2).
+apply bpow_le.
+generalize (prec_gt_0 prec).
+clear -Hmax ; omega.
+apply Rmult_le_pos.
+apply sqrt_ge_0.
+rewrite <- (Rplus_opp_r 1).
+apply Rplus_le_compat_l.
+apply Rlt_le.
+apply (Rabs_lt_inv _ _ Heps').
+rewrite Rabs_pos_eq.
+2: apply sqrt_ge_0.
+apply Rsqr_incr_0.
+2: apply bpow_ge_0.
+2: apply sqrt_ge_0.
+rewrite Rsqr_sqrt.
+2: now apply F2R_ge_0_compat.
+apply Rle_trans with (bpow radix2 emin).
+unfold Rsqr.
+rewrite <- bpow_plus.
+apply bpow_le.
+unfold emin.
+clear -Hmax ; omega.
+apply generic_format_ge_bpow with fexp.
+intros.
+apply Zle_max_r.
+now apply F2R_gt_0_compat.
+apply generic_format_canonic.
+apply (canonic_canonic_mantissa false).
+apply (andb_prop _ _ Hx).
+(* .. *)
+apply round_ge_generic...
+apply generic_format_0.
+apply sqrt_ge_0.
+rewrite Rabs_pos_eq.
+exact Bz.
+apply sqrt_ge_0.
+revert Pz.
+generalize (Zdigits radix2 (Zpos mz)).
+unfold fexp, FLT_exp.
+clear.
+intros ; zify ; subst.
+omega.
+(* . mz < 0 *)
+elim Rlt_not_le  with (1 := proj2 (inbetween_float_bounds _ _ _ _ _ Bz)).
+apply Rle_trans with 0%R.
 apply F2R_le_0_compat.
 now case mz.
 apply sqrt_ge_0.
