@@ -237,6 +237,7 @@ install:
 	cp -r flocq  $(LIBDIR)/
 	cp -r $(ARCH) $(LIBDIR)/
 	cp -r lib $(LIBDIR)/
+	cp VERSION $(LIBDIR)/
 	$(MAKE) -C runtime install
 ifeq ($(CLIGHTGEN),true)
 	install -m 0755 ./clightgen $(BINDIR)
