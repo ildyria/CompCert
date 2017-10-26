@@ -228,6 +228,14 @@ install:
 	install -m 0755 ./ccomp $(BINDIR)
 	install -d $(SHAREDIR)
 	install -m 0644 ./compcert.ini $(SHAREDIR)
+	mkdir -p $(LIBDIR)
+	cp -r backend  $(LIBDIR)/
+	cp -r cfrontend  $(LIBDIR)/
+	cp -r cparser  $(LIBDIR)/
+	cp -r common  $(LIBDIR)/
+	cp -r exportclight  $(LIBDIR)/
+	cp -r $(ARCH) $(LIBDIR)/
+	cp -r lib $(LIBDIR)/
 	$(MAKE) -C runtime install
 ifeq ($(CLIGHTGEN),true)
 	install -m 0755 ./clightgen $(BINDIR)
