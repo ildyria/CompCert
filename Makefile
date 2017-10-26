@@ -234,6 +234,7 @@ install:
 	cp -r cparser  $(LIBDIR)/
 	cp -r common  $(LIBDIR)/
 	cp -r exportclight  $(LIBDIR)/
+	cp -r flocq  $(LIBDIR)/
 	cp -r $(ARCH) $(LIBDIR)/
 	cp -r lib $(LIBDIR)/
 	$(MAKE) -C runtime install
