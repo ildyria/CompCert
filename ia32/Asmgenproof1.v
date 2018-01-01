@@ -11,6 +11,7 @@
 (* *********************************************************************)
 
 (** Correctness proof for IA32 generation: auxiliary results. *)
+Set Warnings "-notation-overridden,-parsing".
 
 Require Import Coqlib.
 Require Import AST.

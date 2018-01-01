@@ -11,6 +11,7 @@
 (* *********************************************************************)
 
 (** Correctness proof for ARM code generation: auxiliary results. *)
+Set Warnings "-notation-overridden,-parsing".
 
 Require Import Coqlib.
 Require Import Errors.

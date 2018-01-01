@@ -11,6 +11,7 @@
 (* *********************************************************************)
 
 (** Correctness proof for x86 generation: main proof. *)
+Set Warnings "-notation-overridden,-parsing".
 
 Require Import Coqlib Errors.
 Require Import Integers Floats AST Linking.

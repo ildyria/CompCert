@@ -11,6 +11,7 @@
 (* *********************************************************************)
 
 (** Correctness proof for PPC generation: auxiliary results. *)
+Set Warnings "-notation-overridden,-parsing".
 
 Require Import Coqlib.
 Require Import Errors.
