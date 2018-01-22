@@ -1,3 +1,7 @@
+# This version of CompCert was maintained to provide compatibility with  [VST](https://github.com/PrincetonUniversity/VST). As VST 2.0 now depends on CompCert 3.2, it will not be updated anymore.
+
+---------------------------------------------------------------------------------
+
 # CompCert
 The verified C compiler.
 
