@@ -16,7 +16,7 @@
 open C
 
 open Camlcoq
-open Floats
+open! Floats
 open Values
 open Ctypes
 open Csyntax
@@ -311,7 +311,7 @@ let attributes = [
   ("section", Cutil.Attr_name);
   ("unused", Cutil.Attr_name)
 ]
-  
+
 
 (** ** Functions used to handle string literals *)
 

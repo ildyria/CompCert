@@ -23,7 +23,7 @@ open Asm
 open Asmexpandaux
 open AST
 open Camlcoq
-open Integers
+open! Integers
 
 exception Error of string
 
@@ -98,7 +98,7 @@ let rec fixup_variadic_call pos tyl =
             fixup_variadic_call (pos + 2) tyl
           end
         end
-        
+
 let fixup_call sg =
   if sg.sig_cc.cc_vararg then fixup_variadic_call 0 sg.sig_args
 
@@ -120,7 +120,7 @@ let expand_annot_val kind txt targ args res =
 
 let offset_in_range ofs =
   let ofs = Z.to_int64 ofs in -2048L <= ofs && ofs < 2048L
-  
+
 let memcpy_small_arg sz arg tmp =
   match arg with
   | BA (IR r) ->
