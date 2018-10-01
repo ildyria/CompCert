@@ -26,7 +26,7 @@ open !Ctypes
 open !Cop
 open !Csyntax
 open !Initializers
-open Floats
+open !Floats
 
 (** ** Extracting information about global variables from their atom *)
 
