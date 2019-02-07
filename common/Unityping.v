@@ -73,13 +73,6 @@ Fixpoint set_list (e: typenv) (rl: list positive) (tyl: list T.t) {struct rl}: r
   | _, _ => Error (msg "arity mismatch")
   end.
 
-Fixpoint set_list (e: typenv) (rl: list positive) (tyl: list T.t) {struct rl}: res typenv :=
-  match rl, tyl with
-  | nil, nil => OK e
-  | r1::rs, ty1::tys => do e1 <- set e r1 ty1; set_list e1 rs tys
-  | _, _ => Error (msg "arity mismatch")
-  end.
-
 (** Add the constraint [T(x) = T(y)].
     The boolean result is [true] if the types of [x] or [y] could be
     made more precise.  Otherwise, [te_typ] does not change and
